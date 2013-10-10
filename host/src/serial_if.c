@@ -22,7 +22,10 @@ int serial_init(void)
     int tty_fd = 0;
     
     /* creates a mutex */
-    if (!pthread_mutex_init(&serial_mutex, NULL)) return -1;
+    if (pthread_mutex_init(&serial_mutex, NULL)) {
+    	printf("Failed initializing mutex\n");
+    	return -1;
+    }
     
     memset(&tio,0,sizeof(tio));
         
