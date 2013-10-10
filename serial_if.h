@@ -18,11 +18,20 @@
 #error "Processor type not supported in serial_if.h !"
 #endif
 
+/*****************************************************
+ transaction_t: structure defining the transaction
+ field. It gets serialized/desrialized to/from
+ the following bitfield:
+ 
+ |31|..|28|27|..|24|23|....................|7|.......|0|
+ |   CMD  |  ADDR  |       VALUE           |    CRC8   |
+ 
+ *****************************************************/
 typedef struct transaction_s {
 	uint8_t 	cmd;
-	uint8_t	addr;
+	uint8_t 	addr;
 	int		value;
-	uint8_t	crc;
+	uint8_t 	crc;
 } transaction_t;
 
 #define E_OK		0
