@@ -23,22 +23,45 @@ int serial_init(void)
     
     /* creates a mutex */
     if (!pthread_mutex_init(&serial_mutex, NULL)) return -1;
+    
+    memset(&tio,0,sizeof(tio));
         
-	memset(&tio,0,sizeof(tio));
-    tio.c_iflag=0;
-    tio.c_oflag=0;
-    tio.c_cflag=CS8|CREAD|CLOCAL;           // 8n1, see termios.h for more information
-    tio.c_lflag=0;
+	pthread_mutex_lock(&serial_mutex);
+	tty_fd = open(SERIAL_IF_PORT, O_RDWR | O_NOCTTY);
+    if (tty_fd < 0) 
+    {
+    	printf("Could not open %s\n", SERIAL_IF_PORT); 
+    	exit(1); 
+    }
+    
+    /* 
+      BAUDRATE: Set bps rate. You could also use cfsetispeed and cfsetospeed.
+      CRTSCTS : output hardware flow control (only used if the cable has
+                all necessary lines. See sect. 7 of Serial-HOWTO)
+      CS8     : 8n1 (8bit,no parity,1 stopbit)
+      CLOCAL  : local connection, no modem contol
+      CREAD   : enable receiving characters
+    */
+    tio.c_cflag = SERIAL_IF_BAUD_RATE | CS8 | CLOCAL | CREAD;
+     
+    /*
+      IGNPAR  : ignore bytes with parity errors
+      ICRNL   : map CR to NL (otherwise a CR input on the other computer
+                will not terminate input)
+      otherwise make device raw (no other input processing)
+    */
+    tio.c_iflag = IGNPAR | ICRNL;
+         
     tio.c_cc[VMIN]=1;
     tio.c_cc[VTIME]=0;		/* MIN > 0; TIME == 0: read(2) blocks until the lesser of MIN bytes or the number of bytes requested are available, and returns the lesser of these two values. */
 
-	pthread_mutex_lock(&serial_mutex);
-    tty_fd=open(SERIAL_IF_PORT, O_RDWR | O_NONBLOCK);
-    if (tty_fd != -1) {      
-		cfsetospeed(&tio,SERIAL_IF_BAUD_RATE);            // 9600 baud
-		cfsetispeed(&tio,SERIAL_IF_BAUD_RATE);            // 9600 baud
-    }
-    pthread_mutex_unlock(&serial_mutex);
+	/* 
+	  now clean the modem line and activate the settings for the port
+	*/
+	tcflush(tty_fd, TCIFLUSH);
+	tcsetattr(tty_fd,TCSANOW,&tio);
+         
+	pthread_mutex_unlock(&serial_mutex);
     
     return tty_fd;
 }

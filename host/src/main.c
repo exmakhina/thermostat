@@ -3,12 +3,13 @@
 
 void main()
 {
-	int tty_fd;
+	int tty_fd = -1;
 	
 	printf("Testing thermostat....\n");
 	
 	tty_fd = serial_init();
+	printf("Serial port open with id=%d\n", tty_fd);
 	serial_close(tty_fd);
 	
-	printf("Done.\n");
+	printf("Serial port closed - Done.\n");
 }
