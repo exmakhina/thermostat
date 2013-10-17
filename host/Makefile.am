@@ -8,7 +8,13 @@ ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 # the previous manual Makefile
 bin_PROGRAMS = thermostat
 
-thermostat_SOURCES = src/main.c
+thermostat_SOURCES = src/main.cpp \
+                      src/application.cpp
+                      
 thermostat_SOURCES += src/model/peripherals/serial_if/serial_if.c \
-                       src/model/peripherals/serial_if/crc8.c
+                       src/model/peripherals/serial_if/crc8.c	\
+                       src/model/peripherals/serial_if/serialif.cpp \
+                       src/model/peripherals/relay/relay.cpp \
+                       src/model/model.cpp
+
  
