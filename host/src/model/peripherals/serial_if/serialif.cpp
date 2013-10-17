@@ -2,17 +2,17 @@
 #include "serial_if.h"	// C interface file
 #include <errno.h>   /* Error number definitions */
 
-serialif::serialif():
+SerialIF::SerialIF():
 	fd(-1)
 {
 }
 
-serialif::~serialif()
+SerialIF::~SerialIF()
 {
 	close();
 }
 
-int serialif::init()
+int SerialIF::init()
 {
 	if (fd < 0) {
 		fd = serial_init();
@@ -22,7 +22,7 @@ int serialif::init()
 	return 0;	// in case where no initialization is necesary or sucess
 }
 
-int serialif::close()
+int SerialIF::close()
 {
 	serial_close(fd);
 	fd = -1;

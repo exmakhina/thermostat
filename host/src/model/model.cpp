@@ -5,23 +5,23 @@
 
 using namespace std;
 
-model::model()
+Model::Model()
 {
-	serialif * tempSensorChain = new serialif();
+	SerialIF * tempSensorChain = new SerialIF();
 	
 	peripheralsList.clear();
 	peripheralsList.push_back(tempSensorChain);
 }
 
-model::~model()
+Model::~Model()
 {
 	peripheralsList.clear();
 }
 
-int model::start()
+int Model::start()
 {
 	int res;
-	vector<peripherals *>::const_iterator i;
+	vector<Peripherals *>::const_iterator i;
 	
 	for (i = peripheralsList.begin(); i != peripheralsList.end(); ++i) 
 	{

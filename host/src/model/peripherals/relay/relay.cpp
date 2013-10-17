@@ -1,20 +1,20 @@
 #include "relay.h"	// cpp header file
 #include <errno.h>   /* Error number definitions */
 
-relay::relay()
+Relay::Relay()
 {
 }
 
-relay::~relay()
+Relay::~Relay()
 {
 }
 
-int relay::init()
+int Relay::init()
 {
 	return 0;
 }
 
-int relay::close()
+int Relay::close()
 {
 	return 0;
 }

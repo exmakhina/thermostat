@@ -1,10 +1,10 @@
 #ifndef __PERIPHERALS_H__
 #define __PERIPHERALS_H__
 
-class peripherals {
+class Peripherals {
 public:
-	peripherals() {};
-	~peripherals() {};
+	Peripherals() {};
+	~Peripherals() {};
 	
 	virtual int init() {return 0;};
 	virtual int close() {return 0;};

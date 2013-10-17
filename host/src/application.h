@@ -3,16 +3,16 @@
 
 #include "model/model.h"
 
-class application 
+class Application 
 {
 public:
-	application();
-	~application();
+	Application();
+	~Application();
 	
 	int start();
 	
 private:
-	model *appModel;
+	Model *model;
 };
 
 #endif /* __APPLICATION_H__ */

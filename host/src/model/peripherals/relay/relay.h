@@ -3,11 +3,11 @@
 
 #include "../peripherals.h"
 
-class relay : public peripherals 
+class Relay : public Peripherals 
 {
 public:
-	relay();
-	~relay();
+	Relay();
+	~Relay();
 	
 	int init();
 	int close();

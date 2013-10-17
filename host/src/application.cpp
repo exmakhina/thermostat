@@ -4,23 +4,23 @@
 
 using namespace std;
 
-application::application()
+Application::Application()
 {
-	appModel = new model();
+	model = new Model();
 }
 
-application::~application()
+Application::~Application()
 {
-	delete appModel;
+	delete model;
 }
 
-int application::start()
+int Application::start()
 {
 	int rval;
 	
 	cout << "Start application" << endl;
 	
-	rval = appModel->start();
+	rval = model->start();
 	if (rval < 0) {
 		cout << "Error initializing the model: Error #" << rval;
 	} else {

@@ -5,7 +5,7 @@ using namespace std;
 
 int main()
 {
-	application *app = new application();
+	Application *app = new Application();
 	
 	cout << "Starting App..." << endl;
 	app->start();

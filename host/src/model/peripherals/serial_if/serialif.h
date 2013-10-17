@@ -3,11 +3,11 @@
 
 #include "../peripherals.h"
 
-class serialif : public peripherals 
+class SerialIF : public Peripherals 
 {
 public:
-	serialif();
-	~serialif();
+	SerialIF();
+	~SerialIF();
 	
 	int init();
 	int close();

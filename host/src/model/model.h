@@ -4,15 +4,15 @@
 #include <vector>
 #include "peripherals/peripherals.h"
 
-class model
+class Model
 {
 public:
-	model();	//\!TODO Add a (controller * ctrl) parameter
-	~model();
+	Model();	//\!TODO Add a (controller * ctrl) parameter
+	~Model();
 	
 	int start();
 	
 private:
-	std::vector<peripherals *> peripheralsList;
+	std::vector<Peripherals *> peripheralsList;
 };
 #endif /* __MODEL_H__ */
