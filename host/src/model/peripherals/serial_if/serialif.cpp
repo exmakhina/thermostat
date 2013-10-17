@@ -14,16 +14,19 @@ serialif::~serialif()
 
 int serialif::init()
 {
-	fd = serial_init();
-	if (fd < 0)
-		return fd;
-	else
-		return 0;
+	if (fd < 0) {
+		fd = serial_init();
+		if (fd < 0)	return fd;
+	}
+	
+	return 0;	// in case where no initialization is necesary or sucess
 }
 
 int serialif::close()
 {
 	serial_close(fd);
+	fd = -1;
+	
 	return 0;
 }
 
