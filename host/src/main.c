@@ -1,5 +1,5 @@
 #include <stdio.h>   /* Standard input/output definitions */
-#include "serial_if.h"
+#include "model/peripherals/serial_if/serial_if.h"
 
 void main()
 {

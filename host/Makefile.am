@@ -4,9 +4,11 @@
 ## make time. The ${ACLOCAL_FLAGS} variable is picked up from the environment
 ## to provide a way for the user to supply additional arguments.
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
+# this lists the binaries to produce, the (non-PHONY, binary) targets in
+# the previous manual Makefile
+bin_PROGRAMS = thermostat
 
-SUBDIRS = src
-
-## The EXTRA_DIST directive tells Automake to place the file autogen.sh in the 
-## distribution archive, so that that file is shipped to our users
-EXTRA_DIST = autogen.sh
+thermostat_SOURCES = src/main.c
+thermostat_SOURCES += src/model/peripherals/serial_if/serial_if.c \
+                       src/model/peripherals/serial_if/crc8.c
+ 
