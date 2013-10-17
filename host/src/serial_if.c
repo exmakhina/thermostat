@@ -24,7 +24,7 @@ int serial_init(void)
     /* creates a mutex */
     if (pthread_mutex_init(&serial_mutex, NULL)) {
     	printf("Failed initializing mutex\n");
-    	return -1;
+    	return E_SYS;
     }
     
     memset(&tio,0,sizeof(tio));
@@ -34,7 +34,7 @@ int serial_init(void)
     if (tty_fd < 0) 
     {
     	printf("Could not open %s\n", SERIAL_IF_PORT); 
-    	exit(1); 
+    	return E_SYS; 
     }
     
     /* 

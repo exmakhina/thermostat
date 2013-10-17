@@ -1,6 +1,10 @@
 #ifndef _SERIAL_IF_H_
 #define _SERIAL_IF_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 #define SERIAL_IF_PORT			"/dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_741333535373519132D0-if00"
@@ -41,5 +45,10 @@ int serial_init(void);
 void serial_close(int tty_fd);
 int receive_transaction(int tty_fd, transaction_t * transaction);
 int send_response(int tty_fd, transaction_t * transaction);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif	// _SERIAL_IF_H_
