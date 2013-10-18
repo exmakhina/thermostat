@@ -1,6 +1,9 @@
+#include <iostream>
 #include "serialif.h"	// cpp header file
 #include "serial_if.h"	// C interface file
 #include <errno.h>   /* Error number definitions */
+
+using namespace std;
 
 SerialIF::SerialIF():
 	fd(-1)
@@ -15,6 +18,7 @@ SerialIF::~SerialIF()
 int SerialIF::init()
 {
 	if (fd < 0) {
+		cout << "Starting Serial controller" << endl;
 		fd = serial_init();
 		if (fd < 0)	return fd;
 	}

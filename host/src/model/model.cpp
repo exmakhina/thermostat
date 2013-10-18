@@ -2,26 +2,35 @@
 #include <iostream>
 #include "model.h"
 #include "peripherals/serial_if/serialif.h"
+#include "../controller/controller.h"
 
 using namespace std;
 
 Model::Model()
 {
+	// Instantiate the peripherals
 	SerialIF * tempSensorChain = new SerialIF();
 	
+	// Create the peripherals list
 	peripheralsList.clear();
 	peripheralsList.push_back(tempSensorChain);
+	
+	// Initialize the Controller list
+	controllerList.clear();
 }
 
 Model::~Model()
 {
 	peripheralsList.clear();
+	controllerList.clear();
 }
 
 int Model::start()
 {
 	int res;
 	vector<Peripherals *>::const_iterator i;
+	
+	cout << "Starting Model" << endl;
 	
 	for (i = peripheralsList.begin(); i != peripheralsList.end(); ++i) 
 	{
@@ -33,4 +42,17 @@ int Model::start()
 	}
 	
 	return res; 
+}
+
+int Model::registerCtrl(Controller * ctrl)
+{
+	int rval = 0;
+	
+	if (ctrl != NULL) {
+		controllerList.push_back(ctrl);
+	} else {
+		rval = -1;
+	}
+	
+	return rval;
 }

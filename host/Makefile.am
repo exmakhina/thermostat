@@ -16,5 +16,7 @@ thermostat_SOURCES += src/model/peripherals/serial_if/serial_if.c \
                        src/model/peripherals/serial_if/serialif.cpp \
                        src/model/peripherals/relay/relay.cpp \
                        src/model/model.cpp
+                       
+thermostat_SOURCES += src/controller/controller.cpp
 
  

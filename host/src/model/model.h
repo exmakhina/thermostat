@@ -2,17 +2,23 @@
 #define __MODEL_H__
 
 #include <vector>
+#include <list>
 #include "peripherals/peripherals.h"
+
+class Controller;
 
 class Model
 {
 public:
-	Model();	//\!TODO Add a (controller * ctrl) parameter
+	Model();	
 	~Model();
 	
 	int start();
+	int registerCtrl(Controller *ctrl);
 	
 private:
 	std::vector<Peripherals *> peripheralsList;
+	std::list<Controller *> controllerList;
 };
+
 #endif /* __MODEL_H__ */
