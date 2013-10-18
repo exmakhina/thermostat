@@ -21,6 +21,15 @@ Model::Model()
 
 Model::~Model()
 {
+	vector<Peripherals *>::const_iterator i;
+	
+	cout << "destroying all peripherals in the model..." << endl;
+	
+	for (i = peripheralsList.begin(); i != peripheralsList.end(); ++i) 
+	{
+		delete *i;
+	}
+	
 	peripheralsList.clear();
 	controllerList.clear();
 }

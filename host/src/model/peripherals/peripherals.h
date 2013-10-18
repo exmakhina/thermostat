@@ -4,7 +4,7 @@
 class Peripherals {
 public:
 	Peripherals() {};
-	~Peripherals() {};
+	virtual ~Peripherals() {};
 	
 	virtual int init() {return 0;};
 	virtual int close() {return 0;};

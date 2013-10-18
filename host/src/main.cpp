@@ -12,5 +12,7 @@ int main()
 	
 	cout << "Exiting" << endl;
 	
+	delete app;
+	
 	return 0;
 }

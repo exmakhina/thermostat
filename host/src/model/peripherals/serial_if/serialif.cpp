@@ -16,6 +16,7 @@ SerialIF::SerialIF():
 
 SerialIF::~SerialIF()
 {
+	cout << "Destroying serial interface" << endl;
 	close();
 	eventThread.join();
 }
@@ -50,12 +51,19 @@ void SerialIF::eventLoopRuntime()
 		msq.receive(message);
 		cout << "Got a message !!" << endl;
 	}
-	
-	pthread_exit(NULL);
 }
 
 void * SerialIF::eventLoop(void * instance)
 {
+	cout << "starting eventLoop" << endl;
+	
 	static_cast<SerialIF*>(instance)->eventLoopRuntime();
+	
+	cout << "event loop finished" << endl;
 	return NULL;
+}
+
+int SerialIF::getTemperature(float &temp, int addr)
+{
+
 }
