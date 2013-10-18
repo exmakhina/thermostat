@@ -2,7 +2,7 @@
 #define __SERIALIF_H__
 
 #include "../peripherals.h"
-#include <pthread.h>
+#include <thread>
 #include "../../../msgqueue.h"
 #include "serial_if.h"	// C interface file
 
@@ -21,7 +21,7 @@ private:
 	int fd;
 	
 	/* Communication thread stuff */
-	pthread_t eventThread;
+	std::thread eventThread;
 	static void *eventLoop(void *);
 	void eventLoopRuntime();
 	

@@ -1,6 +1,6 @@
 #include <iostream>
 #include <unistd.h>
-#include <pthread.h>
+#include <thread>
 #include "../../../msgqueue.h"
 #include "serialif.h"	// cpp header file
 #include "serial_if.h"	// C interface file
@@ -11,11 +11,13 @@ using namespace std;
 SerialIF::SerialIF():
 	fd(-1)
 {
+	eventThread = thread(eventLoop, this);
 }
 
 SerialIF::~SerialIF()
 {
 	close();
+	eventThread.join();
 }
 
 int SerialIF::init()
@@ -26,14 +28,6 @@ int SerialIF::init()
 		cout << "Starting Serial controller" << endl;
 		fd = serial_init();
 		if (fd < 0)	return fd;
-		
-		res = pthread_create(&eventThread, NULL, eventLoop, this);
-		if (res != 0) {
-			cout << "Error creating the serial IF event thread" << endl;
-			serial_close(fd);
-			fd = -1;
-			return -1;
-		}
 	}
 	
 	return 0;	// in case where no initialization is necesary or sucess
@@ -41,8 +35,6 @@ int SerialIF::init()
 
 int SerialIF::close()
 {
-	pthread_join(eventThread, NULL);
-	
 	serial_close(fd);
 	fd = -1;
 	
