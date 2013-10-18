@@ -1,6 +1,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <pthread.h>
+#include "../../../msgqueue.h"
 #include "serialif.h"	// cpp header file
 #include "serial_if.h"	// C interface file
 #include <errno.h>   /* Error number definitions */
@@ -50,9 +51,12 @@ int SerialIF::close()
 
 void SerialIF::eventLoopRuntime()
 {
+	transaction_t message;
+	
 	while(1) {
-		cout << "eventLoopRuntime is alive" << endl;
-		usleep(1000000);
+		cout << "Wait for event..." << endl;
+		msq.receive(message);
+		cout << "Got a message !!" << endl;
 	}
 	
 	pthread_exit(NULL);
