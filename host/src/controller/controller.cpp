@@ -15,7 +15,14 @@ Controller::Controller(Model * mdl):
 
 Controller::~Controller()
 {
+	list<View *>::const_iterator i;
+	
+	for (i = viewList.begin(); i != viewList.end(); ++i) {
+		delete *i;
+	}
 	viewList.clear();
+	cout << "All views have been deleted." << endl;
+	
 	model = NULL;
 }
 
