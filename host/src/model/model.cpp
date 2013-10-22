@@ -6,7 +6,8 @@
 
 using namespace std;
 
-Model::Model()
+Model::Model():
+	ctrl(NULL)
 {
 	// Instantiate the peripherals
 	SerialIF * tempSensorChain = new SerialIF();
@@ -14,9 +15,6 @@ Model::Model()
 	// Create the peripherals list
 	peripheralsList.clear();
 	peripheralsList.push_back(tempSensorChain);
-	
-	// Initialize the Controller list
-	controllerList.clear();
 }
 
 Model::~Model()
@@ -29,9 +27,7 @@ Model::~Model()
 	{
 		delete *i;
 	}
-	
 	peripheralsList.clear();
-	controllerList.clear();
 }
 
 int Model::start()
@@ -53,12 +49,12 @@ int Model::start()
 	return res; 
 }
 
-int Model::registerCtrl(Controller * ctrl)
+int Model::registerCtrl(Controller * controller)
 {
 	int rval = 0;
 	
-	if (ctrl != NULL) {
-		controllerList.push_back(ctrl);
+	if (controller != NULL) {
+		ctrl = controller;
 	} else {
 		rval = -1;
 	}

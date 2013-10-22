@@ -14,11 +14,11 @@ public:
 	~Model();
 	
 	int start();
-	int registerCtrl(Controller *ctrl);
+	int registerCtrl(Controller * controller);
 	
 private:
 	std::vector<Peripherals *> peripheralsList;
-	std::list<Controller *> controllerList;
+	Controller * ctrl;
 };
 
 #endif /* __MODEL_H__ */
