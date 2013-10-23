@@ -20,35 +20,35 @@ public:
 private:
 	mutex mtx;
 	queue<T> msq;
+	condition_variable notifier;
 };
 
 /**** Implementation ****/
 
 template <class T>
-MsgQueue<T>::MsgQueue()
+MsgQueue<T>::MsgQueue() :
+	mtx(),
+	msq(),
+	notifier()
 {
-	mtx.lock();
-	while (!msq.empty()) msq.pop();
-	mtx.unlock();
 }
 
 template <class T>
 MsgQueue<T>::~MsgQueue()
 {
-	mtx.lock();
-	while (!msq.empty()) msq.pop();
-	mtx.unlock();
 }
 
 template <class T>
 int MsgQueue<T>::receive(T &msg)
 {
-	while (msq.empty());	// wait until msq is not empty
+	unique_lock<mutex> lock(mtx);
 	
-	mtx.lock();
+	while (msq.empty()) {		// check if msq is not empty
+		notifier.wait(lock);	// at every mutex notification
+	}
+	
 	msg = msq.front();
 	msq.pop();
-	mtx.unlock();
 	
 	return 0;
 }
@@ -56,11 +56,11 @@ int MsgQueue<T>::receive(T &msg)
 template <class T>
 int MsgQueue<T>::poll(T &msg)
 {
+	unique_lock<mutex> lock(mtx);
+	
 	if (!msq.empty()) {
-		mtx.lock();
 		msg = msq.front();
 		msq.pop();
-		mtx.unlock();
 		return 0;
 	} else {
 		return -1;
@@ -70,9 +70,9 @@ int MsgQueue<T>::poll(T &msg)
 template <class T>
 int MsgQueue<T>::send(T msg)
 {
-	mtx.lock();
+	lock_guard<mutex> lock(mtx);
 	msq.push(msg);
-	mtx.unlock();
+	notifier.notify_one();
 	
 	return 0;
 }
