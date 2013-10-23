@@ -23,17 +23,18 @@ Application::~Application()
 int Application::start()
 {
 	int rval;
+	float temp;
 	
 	cout << "Start application" << endl;
 	
 	rval = ctrl->start();		// Controller starts its associated Model and Views
 	if (rval < 0) {
 		cout << "Error initializing the Application: Error #" << rval;
-	} else {
-		cout << "Everything is fine !";
 	}
 	
-	cout << endl;
+	model->readTemperature(temp, 1);
+	
+	cout << endl << "Temperature is " << temp << endl;;
 	
 	return rval;
 }
