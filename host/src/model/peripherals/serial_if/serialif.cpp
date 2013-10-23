@@ -19,6 +19,7 @@ SerialIF::~SerialIF()
 	
 	cout << "Destroying serial interface" << endl;
 	close();
+	/* Send a KILL signal and wait for event loop to finish */
 	message.cmd = SIG_KILL;
 	tx_msq.send(message);
 	eventThread.join();
@@ -34,12 +35,6 @@ int SerialIF::init()
 		fd = serial_init();
 		if (fd < 0)	return fd;
 		eventThread = thread(eventLoop, this);
-		cout << "Wait for the READY signal." << endl;
-		rx_msq.receive(message);
-		if (message.cmd != SIG_READY) {
-			cout << "Error starting the serial IF event loop thread." << endl;
-			return -1; 
-		}
 	}
 	
 	return 0;	// in case where no initialization is necesary or sucess
@@ -59,15 +54,12 @@ void SerialIF::eventLoopRuntime()
 	transaction_t response;
 	bool stop = false;
 	
-	message.cmd = SIG_READY;
-	rx_msq.send(message);
-	
 	while(!stop) {
-		cout << "Wait for event..." << endl;
 		tx_msq.receive(message);
 		switch (message.cmd) {
 		case CMD_GET_TEMP:
 			cout << "Start reading temperature from sensor #" << message.addr << endl;
+			/* Send a dummy response, for test purpose */
 			response.cmd = RESP_ACK;
 			response.value = 250;
 			response.addr = 1;
@@ -101,13 +93,14 @@ int SerialIF::getTemperature(float &temp, int addr)
 	transaction_t message;
 	int rval = -1;
 	
+	/* Send a request for reading the temperature */
 	cout << "Sending request for reading sensor #" <<addr <<endl;
 	message.cmd = CMD_GET_TEMP;
 	message.addr = addr;
 	message.value = 0;
 	tx_msq.send(message);
 	
-	cout << "Wait for response..." <<endl;
+	/* Wait for the sensor's response */
 	rx_msq.receive(message);
 	if (message.cmd != RESP_ACK) {
 		cout << "Response error !" <<endl;
