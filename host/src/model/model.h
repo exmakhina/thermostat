@@ -16,6 +16,8 @@ public:
 	int start();
 	int registerCtrl(Controller * controller);
 	
+	int readTemperature(float &, int);
+	
 private:
 	std::vector<Peripherals *> peripheralsList;
 	Controller * ctrl;

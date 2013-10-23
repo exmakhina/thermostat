@@ -61,3 +61,8 @@ int Model::registerCtrl(Controller * controller)
 	
 	return rval;
 }
+
+int Model::readTemperature(float &temp, int addr)
+{
+	return static_cast<SerialIF *>(peripheralsList[0])->getTemperature(temp, addr);
+}
