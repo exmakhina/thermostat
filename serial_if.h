@@ -50,7 +50,7 @@ typedef struct transaction_s {
 #define CMD_SET_RELAY	0x02
 
 void serial_init(void);
-int receive_transaction(transaction_t * transaction);
-int send_response(transaction_t * transaction);
+int get_transaction(transaction_t * transaction);
+int send_transaction(transaction_t * transaction);
 
 #endif	// _SERIAL_IF_H_

@@ -5,7 +5,7 @@
 #include "libarduino.h"
 #include "serial_if.h"
 
-#define CRC_CHECK
+//#define CRC_CHECK
 
 #define TRANSACTION_SIZE	4
 
@@ -35,7 +35,7 @@ void serial_init(void)
 }
 
 /* Return -1 if fails, 0 if success                */
-int receive_transaction(transaction_t * transaction)
+int get_transaction(transaction_t * transaction)
 {
 	uint8_t crc;
 	int result;
@@ -64,7 +64,7 @@ int receive_transaction(transaction_t * transaction)
 }
 
 
-int send_response(transaction_t * transaction)
+int send_transaction(transaction_t * transaction)
 {   
 	uint8_t serialized[4];
 	int i;

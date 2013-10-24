@@ -171,7 +171,7 @@ int main( void )
 	while (1) {
 		memset(&response, 0, sizeof(transaction_t));	// reset response
 		
-		rval = receive_transaction(&transaction);
+		rval = get_transaction(&transaction);
 		if (rval == E_NOT_READY) continue;
 		if (rval == E_SYS) return 1;
 		if (rval == E_CRC) {
@@ -209,7 +209,7 @@ error:
 				response.cmd = RESP_ERROR;
 			}
 		}
-		send_response(&response);
+		send_transaction(&response);
 	}
 }
 
