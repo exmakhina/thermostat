@@ -43,8 +43,8 @@ typedef struct transaction_s {
 
 int serial_init(void);
 void serial_close(int tty_fd);
-int receive_transaction(int tty_fd, transaction_t * transaction);
-int send_response(int tty_fd, transaction_t * transaction);
+int get_transaction(int tty_fd, transaction_t * transaction);
+int send_transaction(int tty_fd, transaction_t * transaction);
 
 #ifdef __cplusplus
 }

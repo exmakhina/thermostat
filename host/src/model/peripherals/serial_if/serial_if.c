@@ -9,7 +9,7 @@
 #include "crc8.h"
 #include "serial_if.h"
 
-#define CRC_CHECK
+// #define CRC_CHECK
 
 #define TRANSACTION_SIZE	4
 
@@ -80,7 +80,7 @@ void serial_close(int tty_fd)
 }
 
 /* Return -1 if fails, 0 if success                */
-int receive_transaction(int tty_fd, transaction_t * transaction)
+int get_transaction(int tty_fd, transaction_t * transaction)
 {
 	uint8_t crc;
 	int result;
@@ -93,12 +93,14 @@ int receive_transaction(int tty_fd, transaction_t * transaction)
 	
 	if (result < TRANSACTION_SIZE)
 		return E_NOT_READY; 		// transaction not complete
-	
+		
 	transaction->cmd = (serial_buffer[0] & CMD_MASK) >> 4;
 	transaction->addr = serial_buffer[0] & ADDR_MASK;
 	transaction->value = (serial_buffer[1] << 8) | serial_buffer[2];
 	transaction->crc = serial_buffer[3];
 
+	printf("Receive transaction: cmd: %x, addr=%d, value=%d\n", transaction->cmd, transaction->addr, transaction->value);
+	
 #ifdef CRC_CHECK	
 	crc = crc8(serial_buffer, 3);
 	if (crc == transaction->crc) {		/* CRC OK ? */
@@ -114,13 +116,15 @@ int receive_transaction(int tty_fd, transaction_t * transaction)
 }
 
 
-int send_response(int tty_fd, transaction_t * transaction)
+int send_transaction(int tty_fd, transaction_t * transaction)
 {   
 	uint8_t serialized[TRANSACTION_SIZE];
 	int i;
 	int res;
 	
 	if (transaction == NULL) return E_SYS;
+	
+	printf("Sending transaction: cmd: %x, addr=%d, value=%d\n", transaction->cmd, transaction->addr, transaction->value);
 	
 	serialized[0] = (transaction->cmd << 4) | (transaction->addr & ADDR_MASK);
 	serialized[1] = (transaction->value >> 8) & 0xff;
