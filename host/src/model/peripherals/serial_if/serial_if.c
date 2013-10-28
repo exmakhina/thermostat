@@ -147,6 +147,7 @@ int send_transaction(int tty_fd, transaction_t * transaction)
 	printf("[%s] Mutex locked.\n", __FUNCTION__);
 	pthread_mutex_lock(&serial_mutex);
 	res = write(tty_fd, serialized, TRANSACTION_SIZE);
+	sleep(1);
 	pthread_mutex_unlock(&serial_mutex);
 	printf("[%s] Mutex unlocked.\n", __FUNCTION__);
 	

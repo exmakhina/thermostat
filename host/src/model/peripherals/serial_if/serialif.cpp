@@ -63,7 +63,6 @@ void SerialIF::eventLoopRuntime()
 				stop = true;
 				cout << "Error sending the command to the Arduino" << endl;
 			}
-			sleep(1);
 			if (get_transaction(fd, &response) < 0) {
 				stop = true;
 				cout << "Error receiving the response from the Arduino" << endl;
