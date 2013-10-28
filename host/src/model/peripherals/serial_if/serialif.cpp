@@ -53,18 +53,17 @@ void SerialIF::eventLoopRuntime()
 	transaction_t message;
 	transaction_t response;
 	bool stop = false;
+	int res;
 	
 	while(!stop) {
 		tx_msq.receive(message);
 		switch (message.cmd) {
 		case CMD_GET_TEMP:
-			response.cmd = RESP_ERROR;
-			cout << "Start reading temperature from sensor #" << message.addr << endl;
-			/* Send a dummy response, for test purpose */
 			if (send_transaction(fd, &message) < 0) {
 				stop = true;
 				cout << "Error sending the command to the Arduino" << endl;
 			}
+			sleep(1);
 			if (get_transaction(fd, &response) < 0) {
 				stop = true;
 				cout << "Error receiving the response from the Arduino" << endl;

@@ -150,8 +150,8 @@ int main( void )
 	uint8_t nSensors, i;
 	int16_t decicelsius;
 	uint8_t error;
-	transaction_t transaction;
-	transaction_t response = {0};
+	transaction_t transaction = {0};
+	transaction_t response;
 	int rval;
 	
 	serial_init();
@@ -162,16 +162,16 @@ int main( void )
 	ow_set_bus(&PIND,&PORTD,&DDRD,PD6);
 #endif
 	
-	sei();
-	
 	// initialize sensor (scan onewire bus + eeprom test)
 	nSensors = search_sensors();
 	eeprom_test();
 
 	while (1) {
 		memset(&response, 0, sizeof(transaction_t));	// reset response
+		memset(&transaction, 0, sizeof(transaction_t));
 		
 		rval = get_transaction(&transaction);
+		
 		if (rval == E_NOT_READY) continue;
 		if (rval == E_SYS) return 1;
 		if (rval == E_CRC) {

@@ -7,16 +7,22 @@
 
 //#define CRC_CHECK
 
-#define TRANSACTION_SIZE	4
+#define SOF					'a'
+#define TRANSACTION_SIZE	(sizeof(transaction_t)+1)
 
 static uint8_t serial_buffer[TRANSACTION_SIZE];
 static volatile uint8_t writeptr;
 
 ISR(SERIAL_IF0_ISR_VECT)
 {
+	uint8_t data;
+	
 	if (writeptr < TRANSACTION_SIZE) {	
-		serial_buffer[writeptr] = SERIAL_IF0_DATA;
-		writeptr++;
+		data = SERIAL_IF0_DATA;
+		if ((writeptr != 0) || (data == SOF)) {	// wait for the start byte
+			serial_buffer[writeptr] = data;
+			writeptr++;
+		}
 	}
 }
 
@@ -32,6 +38,7 @@ void serial_init(void)
 	UCSR0B = (1<<RXEN0)|(1<<TXEN0)|(1<<RXCIE0);
 
 	/* dont forget sei() */
+	sei();
 }
 
 /* Return -1 if fails, 0 if success                */
@@ -41,15 +48,13 @@ int get_transaction(transaction_t * transaction)
 	int result;
 	
 	if (transaction == NULL) return E_SYS;
-	if (writeptr < TRANSACTION_SIZE) return E_NOT_READY;	// transaction still in progress
+	//while (writeptr != 1);
+	while (writeptr < TRANSACTION_SIZE); 		// transaction still in progress
 	
-	transaction->cmd = (serial_buffer[0] & CMD_MASK) >> 4;
-	transaction->addr = serial_buffer[0] & ADDR_MASK;
-	transaction->value = (serial_buffer[1] << 8) | serial_buffer[2];
-	transaction->crc = serial_buffer[3];
-
+	memcpy(transaction, &serial_buffer[1], sizeof(transaction_t));
+	
 #ifdef CRC_CHECK	
-	crc = crc8(serial_buffer, 3);
+	crc = crc8(serial_buffer, TRANSACTION_SIZE-1);
 	if (crc == transaction->crc) {		/* CRC OK ? */
 		result = E_OK;
 	} else {
@@ -66,17 +71,16 @@ int get_transaction(transaction_t * transaction)
 
 int send_transaction(transaction_t * transaction)
 {   
-	uint8_t serialized[4];
+	uint8_t serialized[TRANSACTION_SIZE];
 	int i;
 	
 	if (transaction == NULL) return E_SYS;
 	
-	serialized[0] = (transaction->cmd << 4) | (transaction->addr & ADDR_MASK);
-	serialized[1] = (transaction->value >> 8) & 0xff;
-	serialized[2] = transaction->value & 0xff;
-	serialized[3] = crc8(serialized, 3);
+	serialized[0] = SOF;	// start frame marker
+	memcpy(&serialized[1], transaction, sizeof(transaction_t));		// transaction contents
+	serialized[TRANSACTION_SIZE-1] = crc8(serialized, TRANSACTION_SIZE-1);	// crc
 	
-	for (i=0; i<4; i++) {
+	for (i=0; i<TRANSACTION_SIZE; i++) {
 		while ( !(UCSR0A & (1<<UDRE0)) ); /* block till we have space */
 		SERIAL_IF0_DATA = serialized[i]; /* send */
 	}

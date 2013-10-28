@@ -11,69 +11,80 @@
 
 // #define CRC_CHECK
 
-#define TRANSACTION_SIZE	4
+#define TRANSACTION_SIZE	(sizeof(transaction_t)+1)
+#define SOF					'a'
 
-static uint8_t serial_buffer[TRANSACTION_SIZE];
 static pthread_mutex_t serial_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int serial_init(void)
 {
-	struct termios tio;
-    int tty_fd = 0;
-    
-    /* creates a mutex */
+	struct termios tty;
+	int USB_fd = -1;
+
+	/* creates a mutex */
     if (pthread_mutex_init(&serial_mutex, NULL)) {
     	printf("Failed initializing mutex\n");
     	return E_SYS;
     }
     
-    memset(&tio,0,sizeof(tio));
-        
-	pthread_mutex_lock(&serial_mutex);
-	tty_fd = open(SERIAL_IF_PORT, O_RDWR | O_NOCTTY);
-    if (tty_fd < 0) 
-    {
-    	printf("Could not open %s\n", SERIAL_IF_PORT); 
-    	return E_SYS; 
+    USB_fd = open( SERIAL_IF_PORT, O_RDWR| O_NOCTTY | O_NDELAY);
+    if (USB_fd < 0) {
+    	printf("Error opening port %s\n.", SERIAL_IF_PORT);
+    	return USB_fd;
+    } else {
+    	fcntl(USB_fd, F_SETFL, 0);
+    	printf("USB serial port %s is open with fd=%d\n", SERIAL_IF_PORT, USB_fd);
     }
     
-    /* 
-      BAUDRATE: Set bps rate. You could also use cfsetispeed and cfsetospeed.
-      CRTSCTS : output hardware flow control (only used if the cable has
-                all necessary lines. See sect. 7 of Serial-HOWTO)
-      CS8     : 8n1 (8bit,no parity,1 stopbit)
-      CLOCAL  : local connection, no modem contol
-      CREAD   : enable receiving characters
-    */
-    tio.c_cflag = SERIAL_IF_BAUD_RATE | CS8 | CLOCAL | CREAD;
-     
-    /*
-      IGNPAR  : ignore bytes with parity errors
-      ICRNL   : map CR to NL (otherwise a CR input on the other computer
-                will not terminate input)
-      otherwise make device raw (no other input processing)
-    */
-    tio.c_iflag = IGNPAR | ICRNL;
-         
-    tio.c_cc[VMIN]=1;
-    tio.c_cc[VTIME]=0;		/* MIN > 0; TIME == 0: read(2) blocks until the lesser of MIN bytes or the number of bytes requested are available, and returns the lesser of these two values. */
+    memset (&tty, 0, sizeof tty);
+	/* Error Handling */
+	if ( tcgetattr ( USB_fd, &tty ) != 0 )
+	{
+		printf ("error %d from tcgetattr", errno);
+	}
 
-	/* 
-	  now clean the modem line and activate the settings for the port
-	*/
-	tcflush(tty_fd, TCIFLUSH);
-	tcsetattr(tty_fd,TCSANOW,&tio);
-         
+	/* Setting other Port Stuff */
+	tty.c_cflag     |=  CS8 | CREAD | CLOCAL;     // turn on READ & ignore ctrl lines
+#if 1
+	tty.c_cflag     &=  ~PARENB;        // Make 8n1
+	tty.c_cflag     &=  ~CSTOPB;
+	tty.c_cflag     &=  ~CSIZE;
+
+	tty.c_cflag     &=  ~CRTSCTS;       // no flow control
+	tty.c_cc[VMIN]      =   1;                  // read doesn't block
+	tty.c_cc[VTIME]     =   5;                  // 0.5 seconds read timeout
+#endif
+
+	/* Make raw */
+	cfmakeraw(&tty);
+
+	/* Set Baud Rate */
+	cfsetospeed (&tty, (speed_t)B9600);
+	cfsetispeed (&tty, (speed_t)B9600);
+	
+	/* Flush Port, then applies attributes */
+	printf("[%s] Mutex locked.\n", __FUNCTION__);
+	pthread_mutex_lock(&serial_mutex);
+	tcflush( USB_fd, TCIFLUSH );
+	if ( tcsetattr ( USB_fd, TCSANOW, &tty ) != 0)
+	{
+		printf ("error %d from tcsetattr", errno);
+	}
 	pthread_mutex_unlock(&serial_mutex);
-    
-    return tty_fd;
+	printf("[%s] Mutex unlocked.\n", __FUNCTION__);
+	
+	sleep(2);
+	
+	return USB_fd;
 }
 
 void serial_close(int tty_fd)
 {
+	printf("[%s] Mutex locked.\n", __FUNCTION__);
 	pthread_mutex_lock(&serial_mutex);
 	close(tty_fd);
 	pthread_mutex_unlock(&serial_mutex);
+	printf("[%s] Mutex unlocked.\n", __FUNCTION__);
 	
 	/* destroys the mutex */
     pthread_mutex_destroy(&serial_mutex);
@@ -84,25 +95,29 @@ int get_transaction(int tty_fd, transaction_t * transaction)
 {
 	uint8_t crc;
 	int result;
+	uint8_t serial_buffer[TRANSACTION_SIZE];
 	
 	if (transaction == NULL) return E_SYS;
 	
+	printf("[%s] Mutex locked.\n", __FUNCTION__);
 	pthread_mutex_lock(&serial_mutex);
+	memset(serial_buffer, 0, TRANSACTION_SIZE);
 	result = read(tty_fd, serial_buffer, TRANSACTION_SIZE);
 	pthread_mutex_unlock(&serial_mutex);
+	printf("[%s] Mutex unlocked.\n", __FUNCTION__);
+	
+	transaction->cmd = serial_buffer[1];
+	transaction->addr = serial_buffer[2];
+	transaction->value = (int16_t)((serial_buffer[4] << 8) | serial_buffer[3]);
+	transaction->crc = serial_buffer[5];
+	
+	printf("Receive %d-bytes transaction: cmd: %d, addr=%d, value=%d\n", result, transaction->cmd, transaction->addr, transaction->value);
 	
 	if (result < TRANSACTION_SIZE)
 		return E_NOT_READY; 		// transaction not complete
 		
-	transaction->cmd = (serial_buffer[0] & CMD_MASK) >> 4;
-	transaction->addr = serial_buffer[0] & ADDR_MASK;
-	transaction->value = (serial_buffer[1] << 8) | serial_buffer[2];
-	transaction->crc = serial_buffer[3];
-
-	printf("Receive transaction: cmd: %x, addr=%d, value=%d\n", transaction->cmd, transaction->addr, transaction->value);
-	
 #ifdef CRC_CHECK	
-	crc = crc8(serial_buffer, 3);
+	crc = crc8(serial_buffer, TRANSACTION_SIZE-1);
 	if (crc == transaction->crc) {		/* CRC OK ? */
 		result = E_OK;
 	} else {
@@ -124,16 +139,16 @@ int send_transaction(int tty_fd, transaction_t * transaction)
 	
 	if (transaction == NULL) return E_SYS;
 	
-	printf("Sending transaction: cmd: %x, addr=%d, value=%d\n", transaction->cmd, transaction->addr, transaction->value);
+	printf("Sending transaction: cmd: %d, addr=%d, value=%d to fd=%d\n", transaction->cmd, transaction->addr, transaction->value, tty_fd);
 	
-	serialized[0] = (transaction->cmd << 4) | (transaction->addr & ADDR_MASK);
-	serialized[1] = (transaction->value >> 8) & 0xff;
-	serialized[2] = transaction->value & 0xff;
-	serialized[3] = crc8(serialized, 3);
+	serialized[0] = SOF;
+	memcpy(&serialized[1], transaction, sizeof(transaction_t));
 	
+	printf("[%s] Mutex locked.\n", __FUNCTION__);
 	pthread_mutex_lock(&serial_mutex);
 	res = write(tty_fd, serialized, TRANSACTION_SIZE);
 	pthread_mutex_unlock(&serial_mutex);
+	printf("[%s] Mutex unlocked.\n", __FUNCTION__);
 	
 	if (res < TRANSACTION_SIZE)
 		return E_SYS;
