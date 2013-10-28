@@ -48,7 +48,7 @@ int get_transaction(transaction_t * transaction)
 	int result;
 	
 	if (transaction == NULL) return E_SYS;
-	//while (writeptr != 1);
+	
 	while (writeptr < TRANSACTION_SIZE); 		// transaction still in progress
 	
 	memcpy(transaction, &serial_buffer[1], sizeof(transaction_t));
